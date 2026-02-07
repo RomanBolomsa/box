@@ -1,0 +1,64 @@
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.152/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm/controls/OrbitControls.js";
+
+// ---------- UI ----------
+const w = document.getElementById("w");
+const d = document.getElementById("d");
+const h = document.getElementById("h");
+const mat = document.getElementById("mat");
+
+const wVal = document.getElementById("wVal");
+const dVal = document.getElementById("dVal");
+const hVal = document.getElementById("hVal");
+const priceEl = document.getElementById("price");
+
+// ---------- THREE ----------
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf2f2f2);
+
+const camera = new THREE.PerspectiveCamera(45,1,1,5000);
+camera.position.set(1000,800,1000);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(600,400);
+document.getElementById("viewer").appendChild(renderer.domElement);
+
+new OrbitControls(camera, renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x444444,1.2));
+
+let shelf;
+
+function buildShelf(){
+  if(shelf) scene.remove(shelf);
+
+  const geo = new THREE.BoxGeometry(+w.value, +h.value, +d.value);
+  const color = mat.value === "mdf" ? 0xc9a26a : 0xb0b0b0;
+  const mat3d = new THREE.MeshStandardMaterial({color});
+  shelf = new THREE.Mesh(geo, mat3d);
+  shelf.position.y = +h.value/2;
+  scene.add(shelf);
+}
+
+function calcPrice(){
+  const area = (w.value * d.value) / 1_000_000;
+  const base = mat.value === "mdf" ? 2500 : 1800;
+  return Math.round(area * base);
+}
+
+function update(){
+  wVal.textContent = w.value;
+  dVal.textContent = d.value;
+  hVal.textContent = h.value;
+  buildShelf();
+  priceEl.textContent = calcPrice();
+}
+
+[w,d,h,mat].forEach(el => el.oninput = update);
+
+update();
+
+(function animate(){
+  requestAnimationFrame(animate);
+  renderer.render(scene,camera);
+})();

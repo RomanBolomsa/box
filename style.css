@@ -1,0 +1,35 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background: #f6f6f6;
+}
+
+h1 { margin-bottom: 5px; }
+.subtitle { color:#666; }
+
+.container {
+  display: flex;
+  gap: 20px;
+}
+
+.panel {
+  width: 300px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+label {
+  display: block;
+  margin-bottom: 15px;
+}
+
+input, select {
+  width: 100%;
+}
+
+#viewer {
+  flex: 1;
+  background: #fff;
+  border-radius: 8px;
+}

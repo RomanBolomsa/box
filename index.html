@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Конфигуратор полки</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Онлайн-конфигуратор полки</h1>
+<p class="subtitle">Размеры меняются под требования заказчика</p>
+
+<div class="container">
+
+  <div class="panel">
+    <label>Ширина (мм)
+      <input id="w" type="range" min="400" max="1200" value="800">
+      <span id="wVal"></span>
+    </label>
+
+    <label>Глубина (мм)
+      <input id="d" type="range" min="150" max="350" value="250">
+      <span id="dVal"></span>
+    </label>
+
+    <label>Высота (мм)
+      <input id="h" type="range" min="200" max="400" value="300">
+      <span id="hVal"></span>
+    </label>
+
+    <label>Материал
+      <select id="mat">
+        <option value="mdf">МДФ</option>
+        <option value="dsp">ДСП</option>
+      </select>
+    </label>
+
+    <h3>Цена: <span id="price">0</span> ₽</h3>
+
+    <button>Заказать по моим размерам</button>
+  </div>
+
+  <div id="viewer"></div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

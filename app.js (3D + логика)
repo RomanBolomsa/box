@@ -1,72 +1,97 @@
 import * as THREE from "https://cdn.jsdelivr.net";
 import { OrbitControls } from "https://cdn.jsdelivr.net";
 
-// Чекаємо, поки сторінка завантажиться
-window.addEventListener('DOMContentLoaded', () => {
-    const viewer = document.getElementById("viewer");
-    if (!viewer) return;
+function init() {
+    const container = document.getElementById("viewer");
+    if (!container) {
+        console.error("Помилка: Блок #viewer не знайдено!");
+        return;
+    }
 
-    // ---------- UI ЭЛЕМЕНТЫ ----------
-    const w = document.getElementById("w"), d = document.getElementById("d"), h = document.getElementById("h"), mat = document.getElementById("mat");
-    const wVal = document.getElementById("wVal"), dVal = document.getElementById("dVal"), hVal = document.getElementById("hVal"), priceEl = document.getElementById("price");
+    // Встановлюємо висоту, якщо вона не задана в CSS
+    container.style.height = "500px";
+    container.style.backgroundColor = "#ccc";
 
-    // ---------- СЦЕНА THREE.JS ----------
+    // --- СЦЕНА ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf2f2f2);
+    scene.background = new THREE.Color(0xeeeeee);
 
-    const camera = new THREE.PerspectiveCamera(45, viewer.clientWidth / viewer.clientHeight, 1, 10000);
-    camera.position.set(2000, 1500, 2000);
+    // --- КАМЕРА ---
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / 500, 1, 10000);
+    camera.position.set(1500, 1000, 1500);
 
+    // --- РЕНДЕРЕР ---
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(viewer.clientWidth, 500); // Фіксуємо висоту 500px
-    viewer.appendChild(renderer.domElement);
+    renderer.setSize(container.clientWidth, 500);
+    container.appendChild(renderer.domElement);
 
+    // --- УПРАВЛІННЯ (Мишка) ---
     const controls = new OrbitControls(camera, renderer.domElement);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.5));
+    controls.enableDamping = true;
 
-    let shelf;
+    // --- СВІТЛО ---
+    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+    scene.add(light);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    dirLight.position.set(1000, 1000, 1000);
+    scene.add(dirLight);
 
-    function buildShelf() {
-        if (shelf) scene.remove(shelf);
+    let box;
 
-        // Масштабуємо розміри для візуалізації (ділимо на 10 для зручності)
-        const geo = new THREE.BoxGeometry(+w.value, +h.value, +d.value);
-        const color = mat.value === "mdf" ? 0xc9a26a : 0xb0b0b0;
-        const mat3d = new THREE.MeshStandardMaterial({ color, roughness: 0.7 });
-        
-        shelf = new THREE.Mesh(geo, mat3d);
-        shelf.position.y = +h.value / 2;
-        scene.add(shelf);
+    // Отримуємо елементи UI
+    const wInput = document.getElementById("w");
+    const hInput = document.getElementById("h");
+    const dInput = document.getElementById("d");
+    const matSelect = document.getElementById("mat");
+
+    function updateModel() {
+        if (box) scene.remove(box);
+
+        const width = parseFloat(wInput.value) || 1000;
+        const height = parseFloat(hInput.value) || 2000;
+        const depth = parseFloat(dInput.value) || 600;
+
+        const geometry = new THREE.BoxGeometry(width, height, depth);
+        const material = new THREE.MeshStandardMaterial({ 
+            color: matSelect.value === "mdf" ? 0x8b4513 : 0xaaaaaa,
+            roughness: 0.5 
+        });
+
+        box = new THREE.Mesh(geometry, material);
+        box.position.y = height / 2;
+        scene.add(box);
+
+        // Оновлення тексту
+        document.getElementById("wVal").textContent = width;
+        document.getElementById("hVal").textContent = height;
+        document.getElementById("dVal").textContent = depth;
+        document.getElementById("price").textContent = Math.round((width * height * depth) / 1000000 * 5);
     }
 
-    function calcPrice() {
-        const area = (w.value * d.value * h.value) / 1_000_000_000;
-        const base = mat.value === "mdf" ? 15000 : 10000;
-        return Math.round(area * base + 500); 
-    }
+    // Слухаємо повзунки
+    [wInput, hInput, dInput, matSelect].forEach(el => {
+        el.addEventListener('input', updateModel);
+    });
 
-    function update() {
-        wVal.textContent = w.value;
-        dVal.textContent = d.value;
-        hVal.textContent = h.value;
-        priceEl.textContent = calcPrice();
-        buildShelf();
-    }
-
-    [w, d, h, mat].forEach(el => el.oninput = update);
-    
-    update();
+    updateModel();
 
     function animate() {
         requestAnimationFrame(animate);
+        controls.update();
         renderer.render(scene, camera);
     }
     animate();
 
-    // Оновлення розміру при зміні вікна
     window.addEventListener('resize', () => {
-        camera.aspect = viewer.clientWidth / 500;
+        camera.aspect = container.clientWidth / 500;
         camera.updateProjectionMatrix();
-        renderer.setSize(viewer.clientWidth, 500);
+        renderer.setSize(container.clientWidth, 500);
     });
-});
+}
+
+// Запуск після завантаження сторінки
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+} else {
+    init();
+}

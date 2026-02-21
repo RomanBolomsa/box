@@ -1,40 +1,37 @@
-
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>3D Конфігуратор Шафи</title>
+    <title>3D Конфигуратор Шкафа</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <div class="controls">
-            <h3>Параметри (мм)</h3>
+            <h3>Параметры (мм)</h3>
             <label>Ширина: <span id="wVal">1000</span></label>
             <input type="range" id="w" min="400" max="2500" value="1000">
             
-            <label>Глибина: <span id="dVal">600</span></label>
+            <label>Глубина: <span id="dVal">600</span></label>
             <input type="range" id="d" min="300" max="1000" value="600">
             
-            <label>Висота: <span id="hVal">2000</span></label>
+            <label>Высота: <span id="hVal">2000</span></label>
             <input type="range" id="h" min="500" max="2700" value="2000">
             
-            <label>Матеріал:</label>
+            <label>Материал:</label>
             <select id="mat">
-                <option value="mdf">МДФ (Вільха)</option>
-                <option value="chipboard">ДСП (Сірий)</option>
+                <option value="mdf">МДФ (Ольха)</option>
+                <option value="chipboard">ДСП (Серый)</option>
             </select>
             
-            <div class="price-box">Ціна: <span id="price">0</span> грн</div>
+            <div class="price-box">Цена: <span id="price">0</span> грн</div>
         </div>
         
-        <div id="viewer"></div>
+        <!-- Сюда приземлится 3D сцена -->
+        <div id="viewer" style="min-height: 500px; background: #eee;"></div>
     </div>
 
-    <!-- КРИТИЧНО ВАЖЛИВО: type="module" -->
+    <!-- Исправленная строка с type="module" -->
     <script type="module" src="app.js"></script>
-<div id="viewer"></div>
-app.js
-
-
-
+</body>
+</html>

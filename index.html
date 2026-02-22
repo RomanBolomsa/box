@@ -1,33 +1,60 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>3D Конфигуратор Шкафа</title>
-    <link rel="stylesheet" href="style.css">
+    <title>3D Конфигуратор</title>
+    <style>
+        body { font-family: sans-serif; display: flex; gap: 20px; padding: 20px; }
+        #controls { width: 250px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        #viewer { flex-grow: 1; height: 500px; background: #eee; border-radius: 8px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input { width: 100%; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="controls">
-            <h3>Параметры (мм)</h3>
-            <label>Ширина: <span id="wVal">1000</span></label>
-            <input type="range" id="w" min="400" max="2500" value="1000">
-            
-            <label>Глубина: <span id="dVal">600</span></label>
-            <input type="range" id="d" min="300" max="1000" value="600">
-            
-            <label>Высота: <span id="hVal">2000</span></label>
-            <input type="range" id="h" min="500" max="2700" value="2000">
-            
-            <label>Материал:</label>
-            <select id="mat">
-                <option value="mdf">МДФ (Ольха)</option>
-                <option value="chipboard">ДСП (Серый)</option>
-            </select>
-            
-            <div class="price-box">Цена: <span id="price">0</span> грн</div>
-        </div>
-        <div id="viewer"></div>
+    <div id="controls">
+        <h3>Параметры</h3>
+        <label>Ширина: <span id="wVal">1000</span></label>
+        <input type="range" id="w" min="400" max="2500" value="1000">
+        <label>Высота: <span id="hVal">2000</span></label>
+        <input type="range" id="h" min="500" max="2700" value="2000">
+        <label>Глубина: <span id="dVal">600</span></label>
+        <input type="range" id="d" min="300" max="1000" value="600">
+        <p>Цена: <b id="price">0</b> грн</p>
     </div>
-    <script type="module" src="app.js"></script>
+    <div id="viewer"></div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com" } }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f0f0);
+        const viewer = document.getElementById('viewer');
+        const camera = new THREE.PerspectiveCamera(45, viewer.clientWidth / 500, 1, 10000);
+        camera.position.set(1500, 1000, 1500);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(viewer.clientWidth, 500);
+        viewer.appendChild(renderer.domElement);
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        
+        let box;
+        const w = document.getElementById('w'), h = document.getElementById('h'), d = document.getElementById('d');
+        function update() {
+            if(box) scene.remove(box);
+            box = new THREE.Mesh(new THREE.BoxGeometry(+w.value, +h.value, +d.value), new THREE.MeshStandardMaterial({color: 0x8b4513}));
+            box.position.y = +h.value / 2;
+            scene.add(box);
+            document.getElementById('wVal').innerText = w.value;
+            document.getElementById('hVal').innerText = h.value;
+            document.getElementById('dVal').innerText = d.value;
+            document.getElementById('price').innerText = Math.round((w.value * h.value * d.value) / 1000000 * 5);
+        }
+        [w, h, d].forEach(el => el.oninput = update);
+        update();
+        function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+        animate();
+    </script>
 </body>
 </html>

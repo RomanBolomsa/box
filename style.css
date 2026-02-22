@@ -1,7 +1,0 @@
-body { font-family: sans-serif; margin: 20px; background: #f0f0f0; }
-.container { display: flex; gap: 20px; }
-.controls { width: 250px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-label { display: block; margin-top: 15px; font-weight: bold; }
-input[type="range"] { width: 100%; cursor: pointer; }
-.price-box { margin-top: 20px; font-size: 1.2em; color: #2ecc71; font-weight: bold; }
-#viewer { flex-grow: 1; height: 600px; background: #eee; border-radius: 10px; overflow: hidden; }

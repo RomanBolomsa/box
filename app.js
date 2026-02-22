@@ -4,23 +4,22 @@ import { OrbitControls } from "https://cdn.jsdelivr.net";
 function init() {
     const container = document.getElementById("viewer");
     if (!container) return;
-    container.style.height = "500px";
+    const wIn = document.getElementById("w"), hIn = document.getElementById("h"), dIn = document.getElementById("d"), mat = document.getElementById("mat");
+    const wV = document.getElementById("wVal"), hV = document.getElementById("hVal"), dV = document.getElementById("dVal"), pr = document.getElementById("price");
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xeeeeee);
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / 500, 1, 10000);
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / 600, 1, 10000);
     camera.position.set(1500, 1000, 1500);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, 500);
+    renderer.setSize(container.clientWidth, 600);
     container.appendChild(renderer.domElement);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
+    new OrbitControls(camera, renderer.domElement);
     scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.5));
 
     let box;
-    const wIn = document.getElementById("w"), hIn = document.getElementById("h"), dIn = document.getElementById("d"), mat = document.getElementById("mat");
-    const wV = document.getElementById("wVal"), hV = document.getElementById("hVal"), dV = document.getElementById("dVal"), pr = document.getElementById("price");
 
     function update() {
         if (box) scene.remove(box);
@@ -46,8 +45,4 @@ function init() {
     animate();
 }
 
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-} else {
-    init();
-}
+window.onload = init;

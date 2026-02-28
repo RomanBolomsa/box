@@ -1,50 +1,99 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>3D BOX</title>
-    <script src="https://cdnjs.cloudflare.com"></script>
+    <meta charset="UTF-8">
+    <title>3D Шкаф</title>
+    <!-- Используем надежный источник библиотеки -->
+    <script src="https://cdn.jsdelivr.net"></script>
     <style>
-        body { margin: 0; display: flex; font-family: sans-serif; }
-        #menu { width: 250px; padding: 20px; background: #222; color: white; height: 100vh; }
-        input { width: 100%; margin: 10px 0; }
-        #canvas { flex-grow: 1; background: #444; }
+        body { margin: 0; display: flex; font-family: sans-serif; height: 100vh; background: #eee; }
+        #ui { width: 280px; background: #333; color: white; padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.3); }
+        #scene-container { flex-grow: 1; }
+        input { width: 100%; margin: 10px 0; cursor: pointer; }
+        .val { float: right; color: #ff9800; font-weight: bold; }
+        h3 { border-bottom: 1px solid #555; padding-bottom: 10px; color: #ff9800; }
     </style>
 </head>
 <body>
-    <div id="menu">
-        <h3>КОНСТРУКТОР</h3>
-        Ширина: <input type="range" id="w" min="1" max="5" step="0.1" value="2">
-        Висота: <input type="range" id="h" min="1" max="5" step="0.1" value="3">
-        Глибина: <input type="range" id="d" min="1" max="5" step="0.1" value="1">
-        <p>Крути мишкою, щоб бачити 3D</p>
+    <div id="ui">
+        <h3>Параметры (мм)</h3>
+        Ширина: <span id="wV" class="val">1000</span>
+        <input type="range" id="wI" min="400" max="2500" value="1000">
+        
+        Высота: <span id="hV" class="val">2000</span>
+        <input type="range" id="hI" min="500" max="2700" value="2000">
+        
+        Глубина: <span id="dV" class="val">600</span>
+        <input type="range" id="dI" min="300" max="1000" value="600">
+        
+        Толщина: <span id="tV" class="val">18</span>
+        <input type="range" id="tI" min="10" max="38" value="18">
+        
+        <div style="margin-top:30px; padding:10px; background:#444; border-radius:5px;">
+            Цена: <span id="price" style="font-size:20px; color:#4CAF50;">0</span> грн
+        </div>
     </div>
-    <div id="canvas"></div>
+    <div id="scene-container"></div>
 
     <script>
-        const sc = new THREE.Scene();
-        const cam = new THREE.PerspectiveCamera(75, (window.innerWidth-250)/window.innerHeight, 0.1, 1000);
-        const ren = new THREE.WebGLRenderer({antialias: true});
-        ren.setSize(window.innerWidth-250, window.innerHeight);
-        document.getElementById('canvas').appendChild(ren.domElement);
+        const container = document.getElementById('scene-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xcccccc);
 
-        const geo = new THREE.BoxGeometry(1, 1, 1);
-        const mat = new THREE.MeshNormalMaterial();
-        const box = new THREE.Mesh(geo, mat);
-        sc.add(box);
-        cam.position.z = 5;
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / window.innerHeight, 1, 10000);
+        camera.position.set(1500, 1000, 1500);
+        camera.lookAt(0, 500, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(container.clientWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const light = new THREE.DirectionalLight(0xffffff, 0.5);
+        light.position.set(1000, 1000, 1000);
+        scene.add(light);
+
+        const group = new THREE.Group();
+        scene.add(group);
+
+        function createPart(w, h, d, x, y, z) {
+            const mesh = new THREE.Mesh(
+                new THREE.BoxGeometry(w, h, d),
+                new THREE.MeshStandardMaterial({color: 0x8b4513})
+            );
+            mesh.position.set(x, y, z);
+            group.add(mesh);
+        }
 
         function update() {
-            box.scale.set(document.getElementById('w').value, document.getElementById('h').value, document.getElementById('d').value);
+            while(group.children.length > 0) group.remove(group.children[0]);
+            
+            const W = +document.getElementById('wI').value;
+            const H = +document.getElementById('hI').value;
+            const D = +document.getElementById('dI').value;
+            const T = +document.getElementById('tI').value;
+
+            createPart(W, T, D, 0, T/2, 0); // Дно
+            createPart(W, T, D, 0, H - T/2, 0); // Верх
+            createPart(T, H - 2*T, D, -W/2 + T/2, H/2, 0); // Левая
+            createPart(T, H - 2*T, D, W/2 - T/2, H/2, 0); // Правая
+            createPart(W - 4, H - 4, 4, 0, H/2, -D/2 + 2); // Задник
+
+            document.getElementById('wV').innerText = W;
+            document.getElementById('hV').innerText = H;
+            document.getElementById('dV').innerText = D;
+            document.getElementById('tV').innerText = T;
+            document.getElementById('price').innerText = Math.round((W * H * D) / 1000000 * 15);
         }
 
         document.querySelectorAll('input').forEach(i => i.oninput = update);
+        update();
 
         function animate() {
             requestAnimationFrame(animate);
-            box.rotation.y += 0.01;
-            ren.render(sc, cam);
+            group.rotation.y += 0.005; // Авто-вращение
+            renderer.render(scene, camera);
         }
-        update();
         animate();
     </script>
 </body>

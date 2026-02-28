@@ -1,100 +1,171 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>3D Шкаф</title>
-    <!-- Используем надежный источник библиотеки -->
-    <script src="https://cdn.jsdelivr.net"></script>
+    <title>Професійний Конструктор Шаф</title>
+    <script src="https://cdnjs.cloudflare.com"></script>
     <style>
-        body { margin: 0; display: flex; font-family: sans-serif; height: 100vh; background: #eee; }
-        #ui { width: 280px; background: #333; color: white; padding: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.3); }
-        #scene-container { flex-grow: 1; }
-        input { width: 100%; margin: 10px 0; cursor: pointer; }
-        .val { float: right; color: #ff9800; font-weight: bold; }
-        h3 { border-bottom: 1px solid #555; padding-bottom: 10px; color: #ff9800; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background: #2c3e50; color: white; }
+        #menu { width: 320px; padding: 25px; background: #34495e; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto; z-index: 10; }
+        #canvas-container { flex-grow: 1; position: relative; cursor: move; }
+        h2 { margin-top: 0; color: #f39c12; border-bottom: 1px solid #5d6d7e; padding-bottom: 10px; }
+        .control-group { margin-bottom: 20px; }
+        label { display: block; font-size: 14px; margin-bottom: 8px; color: #bdc3c7; }
+        input[type="range"] { width: 100%; height: 6px; background: #2c3e50; border-radius: 5px; outline: none; -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #f39c12; border-radius: 50%; cursor: pointer; }
+        .val { float: right; color: #f39c12; font-weight: bold; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 10px; border: none; border-radius: 4px; background: #e67e22; color: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #d35400; }
+        #price-tag { margin-top: 30px; padding: 20px; background: #27ae60; border-radius: 8px; text-align: center; }
+        .hint { font-size: 11px; color: #95a5a6; margin-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
-    <div id="ui">
-        <h3>Параметры (мм)</h3>
-        Ширина: <span id="wV" class="val">1000</span>
-        <input type="range" id="wI" min="400" max="2500" value="1000">
-        
-        Высота: <span id="hV" class="val">2000</span>
-        <input type="range" id="hI" min="500" max="2700" value="2000">
-        
-        Глубина: <span id="dV" class="val">600</span>
-        <input type="range" id="dI" min="300" max="1000" value="600">
-        
-        Толщина: <span id="tV" class="val">18</span>
-        <input type="range" id="tI" min="10" max="38" value="18">
-        
-        <div style="margin-top:30px; padding:10px; background:#444; border-radius:5px;">
-            Цена: <span id="price" style="font-size:20px; color:#4CAF50;">0</span> грн
-        </div>
+
+<div id="menu">
+    <h2>Конфігуратор Шафи</h2>
+    
+    <div class="control-group">
+        <label>Ширина: <span class="val" id="wV">1800</span> мм</label>
+        <input type="range" id="wI" min="1000" max="3000" value="1800">
     </div>
-    <div id="scene-container"></div>
 
-    <script>
-        const container = document.getElementById('scene-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xcccccc);
+    <div class="control-group">
+        <label>Висота: <span class="val" id="hV">2400</span> мм</label>
+        <input type="range" id="hI" min="1500" max="2700" value="2400">
+    </div>
 
-        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / window.innerHeight, 1, 10000);
-        camera.position.set(1500, 1000, 1500);
-        camera.lookAt(0, 500, 0);
+    <div class="control-group">
+        <label>Глибина: <span class="val" id="dV">600</span> мм</label>
+        <input type="range" id="dI" min="400" max="900" value="600">
+    </div>
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(container.clientWidth, window.innerHeight);
-        container.appendChild(renderer.domElement);
+    <div class="control-group">
+        <label>Кількість секцій: <span class="val" id="sV">3</span></label>
+        <input type="range" id="sI" min="2" max="5" value="3">
+    </div>
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-        const light = new THREE.DirectionalLight(0xffffff, 0.5);
-        light.position.set(1000, 1000, 1000);
-        scene.add(light);
+    <div class="btn-group">
+        <button onclick="toggleDoors()">Відкрити/Закрити</button>
+    </div>
 
-        const group = new THREE.Group();
-        scene.add(group);
+    <div id="price-tag">
+        Вартість проекту:<br>
+        <span style="font-size: 24px;" id="price">0</span> грн
+    </div>
 
-        function createPart(w, h, d, x, y, z) {
-            const mesh = new THREE.Mesh(
-                new THREE.BoxGeometry(w, h, d),
-                new THREE.MeshStandardMaterial({color: 0x8b4513})
-            );
-            mesh.position.set(x, y, z);
-            group.add(mesh);
+    <div class="hint">Ліва кнопка - оберт | Права - панорама | Колесо - зум</div>
+</div>
+
+<div id="canvas-container"></div>
+
+<script>
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xecf0f1);
+
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / window.innerHeight, 1, 10000);
+    camera.position.set(2500, 1500, 2500);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    // Світло
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const light = new THREE.DirectionalLight(0xffffff, 0.5);
+    light.position.set(2000, 2000, 2000);
+    scene.add(light);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    let doorsOpen = false;
+    const T = 18; // Товщина ДСП
+
+    function createBoard(w, h, d, x, y, z, color = 0x8d6e63) {
+        const geo = new THREE.BoxGeometry(w, h, d);
+        const mat = new THREE.MeshStandardMaterial({ color: color });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(x, y, z);
+        
+        const edges = new THREE.EdgesGeometry(geo);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 }));
+        mesh.add(line);
+        
+        return mesh;
+    }
+
+    function update() {
+        while(group.children.length > 0) group.remove(group.children[0]);
+
+        const W = parseInt(document.getElementById('wI').value);
+        const H = parseInt(document.getElementById('hI').value);
+        const D = parseInt(document.getElementById('dI').value);
+        const S = parseInt(document.getElementById('sI').value);
+
+        document.getElementById('wV').innerText = W;
+        document.getElementById('hV').innerText = H;
+        document.getElementById('dV').innerText = D;
+        document.getElementById('sV').innerText = S;
+
+        // Корпус
+        group.add(createBoard(W, T, D, 0, T/2, 0)); // Дно
+        group.add(createBoard(W, T, D, 0, H - T/2, 0)); // Верх
+        group.add(createBoard(T, H - 2*T, D, -W/2 + T/2, H/2, 0)); // Ліва боковина
+        group.add(createBoard(T, H - 2*T, D, W/2 - T/2, H/2, 0)); // Права боковина
+        group.add(createBoard(W - 4, H - 4, 4, 0, H/2, -D/2 + 2, 0x5d4037)); // ХДФ задня стінка
+
+        // Перегородки та секції
+        const sectionWidth = (W - T * (S + 1)) / S;
+        for (let i = 1; i < S; i++) {
+            let posX = -W/2 + (sectionWidth + T) * i + T/2;
+            group.add(createBoard(T, H - 2*T, D - 20, posX, H/2, 10));
         }
 
-        function update() {
-            while(group.children.length > 0) group.remove(group.children[0]);
-            
-            const W = +document.getElementById('wI').value;
-            const H = +document.getElementById('hI').value;
-            const D = +document.getElementById('dI').value;
-            const T = +document.getElementById('tI').value;
-
-            createPart(W, T, D, 0, T/2, 0); // Дно
-            createPart(W, T, D, 0, H - T/2, 0); // Верх
-            createPart(T, H - 2*T, D, -W/2 + T/2, H/2, 0); // Левая
-            createPart(T, H - 2*T, D, W/2 - T/2, H/2, 0); // Правая
-            createPart(W - 4, H - 4, 4, 0, H/2, -D/2 + 2); // Задник
-
-            document.getElementById('wV').innerText = W;
-            document.getElementById('hV').innerText = H;
-            document.getElementById('dV').innerText = D;
-            document.getElementById('tV').innerText = T;
-            document.getElementById('price').innerText = Math.round((W * H * D) / 1000000 * 15);
+        // Полиці (для прикладу по 3 у кожну секцію)
+        for (let i = 0; i < S; i++) {
+            let startX = -W/2 + T + sectionWidth/2 + (sectionWidth + T) * i;
+            for (let j = 1; j <= 3; j++) {
+                group.add(createBoard(sectionWidth, T, D - 30, startX, (H/4) * j, 10, 0x795548));
+            }
         }
 
-        document.querySelectorAll('input').forEach(i => i.oninput = update);
+        // Двері (спрощена логіка розсувної системи)
+        const doorW = W / 2 + 20;
+        const offset = doorsOpen ? doorW - 50 : 0;
+        group.add(createBoard(doorW, H - 40, 20, -W/4 + offset/2, H/2, D/2 + 10, 0xd7ccc8)); // Ліва дверка
+        group.add(createBoard(doorW, H - 40, 20, W/4 - offset/2, H/2, D/2 + 30, 0xbcaaa4));  // Права дверка
+
+        // Ціна
+        const totalArea = (W * H * 2 + W * D * 2 + H * D * 2) / 1000000;
+        document.getElementById('price').innerText = Math.round(totalArea * 950 + (S * 1200));
+        
+        camera.lookAt(0, H/2, 0);
+    }
+
+    function toggleDoors() {
+        doorsOpen = !doorsOpen;
         update();
+    }
 
-        function animate() {
-            requestAnimationFrame(animate);
-            group.rotation.y += 0.005; // Авто-вращение
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
+    document.querySelectorAll('input').forEach(i => i.oninput = update);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+
+    window.onresize = () => {
+        camera.aspect = container.clientWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, window.innerHeight);
+    };
+
+    update();
+    animate();
+</script>
+
 </body>
 </html>

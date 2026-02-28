@@ -1,172 +1,91 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>3D Конфігуратор Шафи</title>
+    <title>3D Шафа</title>
     <style>
-        body { font-family: sans-serif; display: flex; margin: 0; height: 100vh; background: #f0f0f0; overflow: hidden; }
-        #controls { width: 320px; background: #fff; padding: 20px; box-shadow: 2px 0 15px rgba(0,0,0,0.2); z-index: 10; overflow-y: auto; }
-        #viewer { flex-grow: 1; position: relative; cursor: move; }
-        label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #444; }
-        input[type="range"] { width: 100%; margin-top: 8px; cursor: pointer; }
-        .val { float: right; color: #8b4513; font-weight: bold; }
-        h3 { margin: 0 0 15px 0; color: #8b4513; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .price-box { margin-top: 25px; padding: 15px; background: #fffde7; border: 1px solid #ffe082; border-radius: 8px; text-align: center; }
-        .hint { font-size: 11px; color: #999; margin-top: 15px; line-height: 1.4; }
+        body { font-family: sans-serif; display: flex; margin: 0; height: 100vh; background: #f0f0f0; }
+        #controls { width: 280px; background: #fff; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 10; }
+        #viewer { flex-grow: 1; position: relative; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input { width: 100%; }
+        .val { float: right; font-weight: normal; color: #666; }
     </style>
 </head>
 <body>
     <div id="controls">
-        <h3>Налаштування моделі</h3>
-        
-        <label>Ширина: <span id="wVal" class="val">1000</span> мм</label>
+        <h3>Параметри шафи</h3>
+        <label>Ширина: <span id="wVal" class="val">1000</span></label>
         <input type="range" id="w" min="400" max="2500" value="1000">
-
-        <label>Висота: <span id="hVal" class="val">2000</span> мм</label>
+        <label>Висота: <span id="hVal" class="val">2000</span></label>
         <input type="range" id="h" min="500" max="2700" value="2000">
-
-        <label>Глибина: <span id="dVal" class="val">600</span> мм</label>
+        <label>Глибина: <span id="dVal" class="val">600</span></label>
         <input type="range" id="d" min="300" max="1000" value="600">
-
-        <label>Товщина ДСП: <span id="tVal" class="val">18</span> мм</label>
-        <input type="range" id="t" min="10" max="36" value="18">
-
-        <div class="price-box">
-            <span style="color: #666;">Орієнтовна ціна:</span><br>
-            <b style="font-size: 24px; color: #2e7d32;"><span id="price">0</span> грн</b>
-        </div>
-
-        <div class="hint">
-            🖱️ <b>ЛКМ:</b> Обертання моделі<br>
-            🖱️ <b>ПКМ:</b> Переміщення камери<br>
-            🎡 <b>Коліщатко:</b> Наближення
-        </div>
+        <label>Товщина: <span id="tVal" class="val">18</span></label>
+        <input type="range" id="t" min="10" max="38" value="18">
+        <p>Ціна: <b id="price">0</b> грн</p>
     </div>
-    
     <div id="viewer"></div>
 
-    <!-- ПРАВИЛЬНЕ ПІДКЛЮЧЕННЯ БІБЛІОТЕК -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com",
-                "three/addons/": "https://unpkg.com"
-            }
-        }
-    </script>
-
+    <!-- ВИКОРИСТОВУЄМО ПРЯМЕ ПОСИЛАННЯ БЕЗ MAP -->
     <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import * as THREE from 'https://unpkg.com';
 
-        // Ініціалізація сцени
-        const viewer = document.getElementById('viewer');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf5f5f5);
-
+        scene.background = new THREE.Color(0xeeeeee);
+        const viewer = document.getElementById('viewer');
         const camera = new THREE.PerspectiveCamera(45, viewer.clientWidth / window.innerHeight, 1, 10000);
-        camera.position.set(1800, 1200, 1800);
+        camera.position.set(1500, 1000, 1500);
+        camera.lookAt(0, 500, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(viewer.clientWidth, window.innerHeight);
         viewer.appendChild(renderer.domElement);
 
-        // Освітлення
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambientLight);
-        
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(1000, 2000, 1000);
-        scene.add(dirLight);
+        scene.add(new THREE.AmbientLight(0xffffff, 1));
+        const light = new THREE.DirectionalLight(0xffffff, 0.5);
+        light.position.set(1000, 1000, 1000);
+        scene.add(light);
 
-        // Сітка (підлога)
-        const grid = new THREE.GridHelper(3000, 20, 0xcccccc, 0xdddddd);
-        scene.add(grid);
+        let cabinet = new THREE.Group();
+        scene.add(cabinet);
 
-        // Контролер миші
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
+        const w = document.getElementById('w'), h = document.getElementById('h'), d = document.getElementById('d'), t = document.getElementById('t');
 
-        // Група для шафи
-        let cabinetGroup = new THREE.Group();
-        scene.add(cabinetGroup);
-
-        const wIn = document.getElementById('w'), 
-              hIn = document.getElementById('h'), 
-              dIn = document.getElementById('d'),
-              tIn = document.getElementById('t');
-
-        // Функція створення окремої деталі
-        function createPart(w, h, d, x, y, z, color = 0x8b4513) {
-            const geometry = new THREE.BoxGeometry(w, h, d);
-            const material = new THREE.MeshStandardMaterial({ 
-                color: color, 
-                roughness: 0.6,
-                metalness: 0.1 
-            });
-            const mesh = new THREE.Mesh(geometry, material);
+        function createPanel(width, height, depth, x, y, z) {
+            const mesh = new THREE.Mesh(
+                new THREE.BoxGeometry(width, height, depth),
+                new THREE.MeshStandardMaterial({color: 0x8b4513})
+            );
             mesh.position.set(x, y, z);
-            
-            // Додаємо контури деталей
-            const edges = new THREE.EdgesGeometry(geometry);
-            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 }));
-            mesh.add(line);
-            
-            return mesh;
+            cabinet.add(mesh);
         }
 
-        function updateModel() {
-            // Очищуємо попередню модель
-            while(cabinetGroup.children.length > 0) {
-                cabinetGroup.remove(cabinetGroup.children[0]);
-            }
+        function update() {
+            while(cabinet.children.length > 0) cabinet.remove(cabinet.children[0]);
+            
+            const W = +w.value, H = +h.value, D = +d.value, T = +t.value;
 
-            const W = parseFloat(wIn.value);
-            const H = parseFloat(hIn.value);
-            const D = parseFloat(dIn.value);
-            const T = parseFloat(tIn.value); // Товщина ДСП
+            createPanel(W, T, D, 0, T/2, 0); // Дно
+            createPanel(W, T, D, 0, H - T/2, 0); // Верх
+            createPanel(T, H - 2*T, D, -W/2 + T/2, H/2, 0); // Ліва
+            createPanel(T, H - 2*T, D, W/2 - T/2, H/2, 0); // Права
+            createPanel(W - 4, H - 4, 4, 0, H/2, -D/2 + 2); // Задня
 
-            // Будуємо 5 панелей
-            // 1. Дно
-            cabinetGroup.add(createPart(W, T, D, 0, T/2, 0));
-            // 2. Дах
-            cabinetGroup.add(createPart(W, T, D, 0, H - T/2, 0));
-            // 3. Ліва стійка (між дном і дахом)
-            cabinetGroup.add(createPart(T, H - 2*T, D, -W/2 + T/2, H/2, 0));
-            // 4. Права стійка
-            cabinetGroup.add(createPart(T, H - 2*T, D, W/2 - T/2, H/2, 0));
-            // 5. Задня стінка (тонка)
-            cabinetGroup.add(createPart(W - 4, H - 4, 4, 0, H/2, -D/2 + 2, 0x5d2e0d));
-
-            // Оновлення інтерфейсу
             document.getElementById('wVal').innerText = W;
             document.getElementById('hVal').innerText = H;
             document.getElementById('dVal').innerText = D;
             document.getElementById('tVal').innerText = T;
-            
-            // Розрахунок ціни (площа поверхонь * коефіцієнт)
-            const area = ((W*H*2) + (W*D*2) + (H*D*2)) / 1000000;
-            document.getElementById('price').innerText = Math.round(area * 450 + 800);
+            document.getElementById('price').innerText = Math.round((W * H * D) / 1000000 * 12);
         }
 
-        // Слухачі подій
-        [wIn, hIn, dIn, tIn].forEach(el => el.oninput = updateModel);
-
-        window.addEventListener('resize', () => {
-            camera.aspect = viewer.clientWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(viewer.clientWidth, window.innerHeight);
-        });
+        [w, h, d, t].forEach(el => el.oninput = update);
+        update();
 
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();
             renderer.render(scene, camera);
         }
-
-        // Запуск
-        updateModel();
         animate();
     </script>
 </body>

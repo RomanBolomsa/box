@@ -1,134 +1,51 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>3D Конфігуратор Меблів</title>
+    <title>3D BOX</title>
+    <script src="https://cdnjs.cloudflare.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; display: flex; height: 100vh; background: #f4f4f4; }
-        #sidebar { width: 300px; background: #fff; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-        #canvas-container { flex-grow: 1; position: relative; background: #eee; }
-        h2 { color: #8b4513; margin-top: 0; font-size: 1.2em; border-bottom: 2px solid #8b4513; padding-bottom: 10px; }
-        label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 14px; }
-        input[type="range"] { width: 100%; cursor: pointer; }
-        .val-display { float: right; color: #d35400; }
-        .price-tag { margin-top: auto; padding: 15px; background: #fdf2e9; border: 1px dashed #d35400; border-radius: 5px; text-align: center; }
-        #price { font-size: 24px; color: #d35400; }
+        body { margin: 0; display: flex; font-family: sans-serif; }
+        #menu { width: 250px; padding: 20px; background: #222; color: white; height: 100vh; }
+        input { width: 100%; margin: 10px 0; }
+        #canvas { flex-grow: 1; background: #444; }
     </style>
 </head>
 <body>
-
-<div id="sidebar">
-    <h2>Параметри шафи</h2>
-    
-    <label>Ширина: <span class="val-display"><span id="wV">1000</span> мм</span></label>
-    <input type="range" id="wI" min="400" max="2400" value="1000">
-
-    <label>Висота: <span class="val-display"><span id="hV">2000</span> мм</span></label>
-    <input type="range" id="hI" min="600" max="2700" value="2000">
-
-    <label>Глибина: <span class="val-display"><span id="dV">600</span> мм</span></label>
-    <input type="range" id="dI" min="300" max="1000" value="600">
-
-    <label>Товщина ДСП: <span class="val-display"><span id="tV">18</span> мм</span></label>
-    <input type="range" id="tI" min="16" max="36" value="18" step="2">
-
-    <div class="price-tag">
-        Ціна матеріалів:<br>
-        <b id="price">0</b> <b>грн</b>
+    <div id="menu">
+        <h3>КОНСТРУКТОР</h3>
+        Ширина: <input type="range" id="w" min="1" max="5" step="0.1" value="2">
+        Висота: <input type="range" id="h" min="1" max="5" step="0.1" value="3">
+        Глибина: <input type="range" id="d" min="1" max="5" step="0.1" value="1">
+        <p>Крути мишкою, щоб бачити 3D</p>
     </div>
-</div>
+    <div id="canvas"></div>
 
-<div id="canvas-container" id="rendererContainer"></div>
+    <script>
+        const sc = new THREE.Scene();
+        const cam = new THREE.PerspectiveCamera(75, (window.innerWidth-250)/window.innerHeight, 0.1, 1000);
+        const ren = new THREE.WebGLRenderer({antialias: true});
+        ren.setSize(window.innerWidth-250, window.innerHeight);
+        document.getElementById('canvas').appendChild(ren.domElement);
 
-<!-- ПІДКЛЮЧЕННЯ БІБЛІОТЕКИ ЧЕРЕЗ КЛАСИЧНИЙ SCRIPT (БЕЗ IMPORT) -->
-<script src="https://cdnjs.cloudflare.com"></script>
+        const geo = new THREE.BoxGeometry(1, 1, 1);
+        const mat = new THREE.MeshNormalMaterial();
+        const box = new THREE.Mesh(geo, mat);
+        sc.add(box);
+        cam.position.z = 5;
 
-<script>
-    // Налаштування сцени
-    const container = document.getElementById('canvas-container');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
+        function update() {
+            box.scale.set(document.getElementById('w').value, document.getElementById('h').value, document.getElementById('d').value);
+        }
 
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / window.innerHeight, 1, 10000);
-    camera.position.set(1500, 1200, 1500);
-    camera.lookAt(0, 800, 0);
+        document.querySelectorAll('input').forEach(i => i.oninput = update);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
-
-    // Світло
-    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-    const pointLight = new THREE.PointLight(0xffffff, 0.5);
-    pointLight.position.set(2000, 2000, 2000);
-    scene.add(pointLight);
-
-    // Допоміжна сітка
-    const grid = new THREE.GridHelper(3000, 20);
-    scene.add(grid);
-
-    const group = new THREE.Group();
-    scene.add(group);
-
-    function createPart(width, height, depth, x, y, z) {
-        const geo = new THREE.BoxGeometry(width, height, depth);
-        const mat = new THREE.MeshStandardMaterial({ color: 0xa0522d });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(x, y, z);
-        
-        // Додаємо рамку для деталі
-        const edges = new THREE.EdgesGeometry(geo);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-        mesh.add(line);
-        
-        group.add(mesh);
-    }
-
-    function draw() {
-        while(group.children.length > 0) group.remove(group.children[0]);
-
-        const W = parseInt(document.getElementById('wI').value);
-        const H = parseInt(document.getElementById('hI').value);
-        const D = parseInt(document.getElementById('dI').value);
-        const T = parseInt(document.getElementById('tI').value);
-
-        // Оновлення тексту
-        document.getElementById('wV').innerText = W;
-        document.getElementById('hV').innerText = H;
-        document.getElementById('dV').innerText = D;
-        document.getElementById('tV').innerText = T;
-
-        // Побудова конструкції
-        createPart(W, T, D, 0, T/2, 0); // Дно
-        createPart(W, T, D, 0, H - T/2, 0); // Дах
-        createPart(T, H - 2*T, D, -W/2 + T/2, H/2, 0); // Ліва стійка
-        createPart(T, H - 2*T, D, W/2 - T/2, H/2, 0); // Права стійка
-        createPart(W - 4, H - 4, 4, 0, H/2, -D/2 + 2); // Задня стінка
-
-        // Ціна
-        const m2 = ((W*H*2) + (W*D*2) + (H*D*2)) / 1000000;
-        document.getElementById('price').innerText = Math.round(m2 * 600 + 1200);
-    }
-
-    // Слухачі змін
-    document.querySelectorAll('input').forEach(i => i.oninput = draw);
-
-    // Анімація
-    function animate() {
-        requestAnimationFrame(animate);
-        group.rotation.y += 0.002; // Повільне обертання для візуалізації
-        renderer.render(scene, camera);
-    }
-
-    window.onresize = () => {
-        camera.aspect = container.clientWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, window.innerHeight);
-    };
-
-    draw();
-    animate();
-</script>
-
+        function animate() {
+            requestAnimationFrame(animate);
+            box.rotation.y += 0.01;
+            ren.render(sc, cam);
+        }
+        update();
+        animate();
+    </script>
 </body>
 </html>

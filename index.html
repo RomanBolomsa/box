@@ -2,180 +2,175 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>3D Конструктор Шаф v2.0</title>
-    <!-- Підключаємо бібліотеку прямо з надійного джерела -->
+    <title>3D Wardrobe Builder Pro</title>
+    <!-- Основна бібліотека -->
     <script src="https://cdnjs.cloudflare.com"></script>
     <style>
-        /* Усі стилі вже тут, файл style.css НЕ потрібен */
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; background: #2c3e50; color: white; overflow: hidden; }
-        #menu { width: 320px; padding: 20px; background: #34495e; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto; z-index: 10; border-right: 2px solid #f39c12; }
-        #viewer { flex-grow: 1; background: #ecf0f1; position: relative; }
-        h2 { color: #f39c12; border-bottom: 1px dashed #5d6d7e; padding-bottom: 10px; margin-top: 0; text-transform: uppercase; font-size: 18px; }
-        .group { margin-bottom: 20px; }
-        label { display: block; font-size: 13px; margin-bottom: 8px; color: #bdc3c7; }
-        input[type="range"] { width: 100%; cursor: pointer; accent-color: #f39c12; }
-        .val { float: right; color: #f39c12; font-weight: bold; font-size: 15px; }
-        button { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
-        button:hover { background: #d35400; transform: translateY(-2px); }
-        #price-box { margin-top: 30px; padding: 20px; background: #27ae60; border-radius: 8px; text-align: center; border: 2px solid #2ecc71; }
-        .price-label { font-size: 14px; opacity: 0.9; }
-        #price { font-size: 26px; font-weight: bold; display: block; margin-top: 5px; }
-        .hint { font-size: 11px; color: #95a5a6; margin-top: 20px; line-height: 1.4; text-align: center; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background: #1a1a1a; color: white; overflow: hidden; }
+        #sidebar { width: 340px; background: #252525; padding: 20px; box-shadow: 5px 0 20px rgba(0,0,0,0.5); z-index: 100; overflow-y: auto; border-right: 2px solid #e67e22; }
+        #container { flex-grow: 1; position: relative; }
+        h2 { color: #e67e22; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 0; }
+        .setting { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; margin-bottom: 8px; color: #aaa; }
+        input[type="range"] { width: 100%; cursor: pointer; accent-color: #e67e22; }
+        .val { float: right; color: #e67e22; font-weight: bold; font-size: 16px; }
+        .controls { display: grid; gap: 10px; margin-top: 20px; }
+        button { padding: 12px; border: none; border-radius: 4px; background: #e67e22; color: white; cursor: pointer; font-weight: bold; transition: 0.2s; text-transform: uppercase; }
+        button:hover { background: #d35400; transform: translateY(-1px); }
+        #price-display { margin-top: 30px; padding: 20px; background: #2ecc71; border-radius: 6px; text-align: center; font-size: 24px; font-weight: bold; color: #111; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        .info { font-size: 11px; color: #666; margin-top: 20px; line-height: 1.5; text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="menu">
-    <h2>Конфігуратор Шафи</h2>
+<div id="sidebar">
+    <h2>Конфігуратор v2.0</h2>
     
-    <div class="group">
+    <div class="setting">
         <label>Ширина: <span id="wV" class="val">1800</span> мм</label>
         <input type="range" id="wI" min="1000" max="3000" value="1800">
     </div>
 
-    <div class="group">
-        <label>Висота: <span id="hV" class="val">2300</span> мм</label>
-        <input type="range" id="hI" min="1500" max="2700" value="2300">
+    <div class="setting">
+        <label>Висота: <span id="hV" class="val">2400</span> мм</label>
+        <input type="range" id="hI" min="1500" max="2750" value="2400">
     </div>
 
-    <div class="group">
+    <div class="setting">
         <label>Глибина: <span id="dV" class="val">600</span> мм</label>
-        <input type="range" id="dI" min="400" max="900" value="600">
+        <input type="range" id="dI" min="400" max="1000" value="600">
     </div>
 
-    <div class="group">
-        <label>Кількість секцій: <span id="sV" class="val">3</span></label>
+    <div class="setting">
+        <label>Секції: <span id="sV" class="val">3</span></label>
         <input type="range" id="sI" min="2" max="5" value="3">
     </div>
 
-    <button onclick="moveDoors()">ВІДКРИТИ / ЗАКРИТИ ДВЕРІ</button>
-
-    <div id="price-box">
-        <span class="price-label">Орієнтовна вартість:</span>
-        <span id="price">0</span> грн
+    <div class="controls">
+        <button onclick="toggleDoors()">Відкрити/Закрити двері</button>
+        <button onclick="resetCamera()">Скинути камеру</button>
     </div>
 
-    <div class="hint">
-        Мишка: ЛКМ - оберт, ПКМ - зсув, Колесо - наближення.
+    <div id="price-display"><span id="price">0</span> грн</div>
+    
+    <div class="info">
+        Ліва кнопка - Обертання<br>Права кнопка - Переміщення<br>Колесо - Масштаб
     </div>
 </div>
 
-<div id="viewer"></div>
+<div id="container"></div>
 
 <script>
-    // Ініціалізація сцени Three.js
-    const view = document.getElementById('viewer');
+    // Налаштування сцени
+    const cont = document.getElementById('container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xdde4e7);
+    scene.background = new THREE.Color(0xf5f5f5);
 
-    const camera = new THREE.PerspectiveCamera(45, view.clientWidth / window.innerHeight, 1, 10000);
-    camera.position.set(2800, 1800, 2800);
+    const camera = new THREE.PerspectiveCamera(45, cont.clientWidth / window.innerHeight, 1, 10000);
+    camera.position.set(2500, 1800, 2500);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(view.clientWidth, window.innerHeight);
-    view.appendChild(renderer.domElement);
+    renderer.setSize(cont.clientWidth, window.innerHeight);
+    cont.appendChild(renderer.domElement);
 
     // Світло
-    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-    const sun = new THREE.DirectionalLight(0xffffff, 0.6);
-    sun.position.set(1500, 2500, 1500);
-    scene.add(sun);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const light = new THREE.DirectionalLight(0xffffff, 0.4);
+    light.position.set(1000, 3000, 1000);
+    scene.add(light);
 
-    // Сітка підлоги
-    const grid = new THREE.GridHelper(4000, 20, 0xbdc3c7, 0xdfe6e9);
+    const grid = new THREE.GridHelper(5000, 25, 0xdddddd, 0xeeeeee);
     scene.add(grid);
 
-    const group = new THREE.Group();
-    scene.add(group);
+    const wardrobe = new THREE.Group();
+    scene.add(wardrobe);
 
     let doorsOpen = false;
+    const T = 18; // Стандартна товщина плити
 
-    // Функція створення панелей
-    function createPart(w, h, d, x, y, z, color = 0x8b4513) {
+    // Функція створення елемента
+    function addPanel(w, h, d, x, y, z, color = 0x8b4513) {
         const geo = new THREE.BoxGeometry(w, h, d);
-        const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.7 });
+        const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(x, y, z);
         
-        // Контури деталей
+        // Чорні краї деталей
         const edges = new THREE.EdgesGeometry(geo);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x2c3e50 }));
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x222222 }));
         mesh.add(line);
         
-        group.add(mesh);
+        wardrobe.add(mesh);
         return mesh;
     }
 
-    function update() {
-        // Очищення сцени перед перемалюванням
-        while(group.children.length > 0) group.remove(group.children[0]);
+    function build() {
+        while(wardrobe.children.length > 0) wardrobe.remove(wardrobe.children[0]);
 
         const W = parseInt(document.getElementById('wI').value);
         const H = parseInt(document.getElementById('hI').value);
         const D = parseInt(document.getElementById('dI').value);
         const S = parseInt(document.getElementById('sI').value);
-        const T = 18; // Товщина ДСП
 
-        // Оновлення тексту в меню
         document.getElementById('wV').innerText = W;
         document.getElementById('hV').innerText = H;
         document.getElementById('dV').innerText = D;
         document.getElementById('sV').innerText = S;
 
-        // Побудова КОРПУСУ
-        createPart(W, T, D, 0, T/2, 0); // Дно
-        createPart(W, T, D, 0, H - T/2, 0); // Дах
-        createPart(T, H - 2*T, D, -W/2 + T/2, H/2, 0); // Ліва стійка
-        createPart(T, H - 2*T, D, W/2 - T/2, H/2, 0); // Права стійка
-        createPart(W - 4, H - 4, 4, 0, H/2, -D/2 + 2, 0x4d3227); // Задня стінка (ХДФ)
+        // КОРПУС
+        addPanel(W, T, D, 0, T/2, 0); // Дно
+        addPanel(W, T, D, 0, H - T/2, 0); // Дах
+        addPanel(T, H - 2*T, D, -W/2 + T/2, H/2, 0); // Ліва стійка
+        addPanel(T, H - 2*T, D, W/2 - T/2, H/2, 0); // Права стійка
+        addPanel(W - 4, H - 4, 4, 0, H/2, -D/2 + 2, 0x442211); // Задня стінка
 
-        // Перегородки (внутрішні стійки)
-        const sw = (W - T * (S + 1)) / S;
+        // ВНУТРІШНІ ПЕРЕГОРОДКИ
+        const secW = (W - T * (S + 1)) / S;
         for (let i = 1; i < S; i++) {
-            let posX = -W/2 + (sw + T) * i + T/2;
-            createPart(T, H - 2*T, D - 40, posX, H/2, 20, 0x7e5a4a);
+            let px = -W/2 + (secW + T) * i + T/2;
+            addPanel(T, H - 2*T, D - 40, px, H/2, 20, 0x7a5230);
         }
 
-        // Двері (система купе)
-        const dw = W / 2 + 15;
-        const offset = doorsOpen ? dw - 80 : 0;
-        createPart(dw, H - 45, 20, -W/4 + offset/2, H/2, D/2 + 12, 0xd2b48c); // Двері 1
-        createPart(dw, H - 45, 20, W/4 - offset/2, H/2, D/2 + 35, 0xe3c191);  // Двері 2
+        // ПОЛИЦІ (по 4 на секцію)
+        for (let i = 0; i < S; i++) {
+            let startX = -W/2 + T + secW/2 + (secW + T) * i;
+            for (let j = 1; j <= 4; j++) {
+                addPanel(secW, T, D - 50, startX, (H/5) * j, 20, 0x966f33);
+            }
+        }
 
-        // Розрахунок ціни
-        const price = Math.round((W * H * D) / 1000000 * 22 + (S * 1500));
-        document.getElementById('price').innerText = price.toLocaleString();
+        // ДВЕРІ КУПЕ
+        const doorW = W / 2 + 10;
+        const move = doorsOpen ? doorW - 60 : 0;
+        addPanel(doorW, H - 40, 20, -W/4 + move/2, H/2, D/2 + 12, 0xd2b48c); // Передня
+        addPanel(doorW, H - 40, 20, W/4 - move/2, H/2, D/2 + 35, 0xc19a6b);  // Задня
 
+        // ЦІНА
+        const m2 = ((W*H*2) + (W*D*2) + (H*D*2)) / 1000000;
+        document.getElementById('price').innerText = Math.round(m2 * 1100 + S * 900);
+        
         camera.lookAt(0, H/2, 0);
     }
 
-    // Функція анімації дверей
-    function moveDoors() {
-        doorsOpen = !doorsOpen;
-        update();
-    }
+    function toggleDoors() { doorsOpen = !doorsOpen; build(); }
+    function resetCamera() { camera.position.set(2500, 1800, 2500); build(); }
 
-    // Оновлення при русі повзунків
-    document.querySelectorAll('input').forEach(input => {
-        input.oninput = update;
-    });
+    document.querySelectorAll('input').forEach(el => el.oninput = build);
 
-    // Рендеринг
-    function animate() {
-        requestAnimationFrame(animate);
+    function render() {
+        requestAnimationFrame(render);
         renderer.render(scene, camera);
     }
 
-    // Корекція при зміні розміру вікна
     window.onresize = () => {
-        camera.aspect = view.clientWidth / window.innerHeight;
+        camera.aspect = cont.clientWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(view.clientWidth, window.innerHeight);
+        renderer.setSize(cont.clientWidth, window.innerHeight);
     };
 
-    update();
-    animate();
+    build();
+    render();
 </script>
 
 </body>

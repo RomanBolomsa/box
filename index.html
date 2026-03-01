@@ -1,85 +1,184 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Конфигуратор корпусной мебели</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 30px;
-    }
-    .configurator {
-      max-width: 420px;
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-    }
-    .price {
-      margin-top: 20px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #2c7;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>3D Конфигуратор корпусной мебели</title>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  display: flex;
+  height: 100vh;
+}
+
+.panel {
+  width: 360px;
+  padding: 25px;
+  background: #020617;
+  box-shadow: 4px 0 20px rgba(0,0,0,.4);
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+.control {
+  margin-bottom: 20px;
+}
+
+label {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+input[type=range] {
+  width: 100%;
+}
+
+.value {
+  float: right;
+  font-weight: bold;
+}
+
+.price {
+  margin-top: 30px;
+  font-size: 26px;
+  color: #22c55e;
+  font-weight: bold;
+}
+
+canvas {
+  display: block;
+}
+</style>
 </head>
+
 <body>
 
-<div class="configurator">
-  <h2>Конфигуратор корпусной мебели</h2>
+<div class="panel">
+  <h2>3D Конфигуратор шкафа</h2>
 
-  <label>Ширина (см)</label>
-  <input type="number" id="width" value="100">
+  <div class="control">
+    <label>Ширина (мм) <span class="value" id="wVal"></span></label>
+    <input type="range" min="600" max="2400" step="50" id="width">
+  </div>
 
-  <label>Высота (см)</label>
-  <input type="number" id="height" value="200">
+  <div class="control">
+    <label>Высота (мм) <span class="value" id="hVal"></span></label>
+    <input type="range" min="1800" max="2700" step="50" id="height">
+  </div>
 
-  <label>Глубина (см)</label>
-  <input type="number" id="depth" value="60">
-
-  <label>Материал</label>
-  <select id="material">
-    <option value="1">ЛДСП</option>
-    <option value="1.4">МДФ</option>
-    <option value="2">Массив</option>
-  </select>
+  <div class="control">
+    <label>Глубина (мм) <span class="value" id="dVal"></span></label>
+    <input type="range" min="400" max="700" step="10" id="depth">
+  </div>
 
   <div class="price">
-    Цена: <span id="price">0</span> ₽
+    Цена: <span id="price">0</span> ₴
   </div>
 </div>
 
 <script>
-  const inputs = document.querySelectorAll('input, select');
-  const priceEl = document.getElementById('price');
+// ---------- UI ----------
+const widthInput = document.getElementById('width');
+const heightInput = document.getElementById('height');
+const depthInput = document.getElementById('depth');
 
-  function calculatePrice() {
-    const width = +document.getElementById('width').value;
-    const height = +document.getElementById('height').value;
-    const depth = +document.getElementById('depth').value;
-    const material = +document.getElementById('material').value;
+widthInput.value = 1200;
+heightInput.value = 2200;
+depthInput.value = 600;
 
-    // базовая формула (можно менять)
-    const volume = (width * height * depth) / 1000000;
-    const basePrice = 12000; // цена за м³
-    const price = Math.round(volume * basePrice * material);
+const wVal = document.getElementById('wVal');
+const hVal = document.getElementById('hVal');
+const dVal = document.getElementById('dVal');
+const priceEl = document.getElementById('price');
 
-    priceEl.textContent = price.toLocaleString();
-  }
+// ---------- THREE.JS ----------
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0f172a);
 
-  inputs.forEach(el => el.addEventListener('input', calculatePrice));
-  calculatePrice();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
+camera.position.set(1200, 1200, 2000);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth - 360, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+renderer.domElement.style.position = 'absolute';
+renderer.domElement.style.right = '0';
+
+// Свет
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const light = new THREE.DirectionalLight(0xffffff, 0.8);
+light.position.set(1000, 2000, 1000);
+scene.add(light);
+
+// Материал ЛДСП
+const material = new THREE.MeshStandardMaterial({ color: 0xc8a165 });
+
+// Модель
+let cabinet;
+
+function buildCabinet() {
+  if (cabinet) scene.remove(cabinet);
+
+  const w = +widthInput.value;
+  const h = +heightInput.value;
+  const d = +depthInput.value;
+
+  const geometry = new THREE.BoxGeometry(w, h, d);
+  cabinet = new THREE.Mesh(geometry, material);
+  cabinet.position.y = h / 2;
+  scene.add(cabinet);
+
+  calculatePrice(w, h, d);
+}
+
+function calculatePrice(w, h, d) {
+  // Реальный расчёт (Украина)
+  const area =
+    (w * h * 2 + w * d * 2 + h * d * 2) / 1_000_000;
+
+  const ldsPrice = 850; // грн / м²
+  const edgePrice = 45; // грн / м.п
+  const assembly = 1200;
+
+  const edgeLength =
+    (w * 4 + h * 4 + d * 4) / 1000;
+
+  const price =
+    area * ldsPrice +
+    edgeLength * edgePrice +
+    assembly;
+
+  priceEl.textContent = Math.round(price).toLocaleString();
+}
+
+function updateUI() {
+  wVal.textContent = widthInput.value;
+  hVal.textContent = heightInput.value;
+  dVal.textContent = depthInput.value;
+  buildCabinet();
+}
+
+[widthInput, heightInput, depthInput].forEach(i =>
+  i.addEventListener('input', updateUI)
+);
+
+updateUI();
+
+function animate() {
+  requestAnimationFrame(animate);
+  cabinet.rotation.y += 0.002;
+  renderer.render(scene, camera);
+}
+animate();
 </script>
 
 </body>

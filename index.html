@@ -2,23 +2,25 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Професійний Конструктор Шаф</title>
+    <title>3D Конструктор Шаф v2.0</title>
+    <!-- Підключаємо бібліотеку прямо з надійного джерела -->
     <script src="https://cdnjs.cloudflare.com"></script>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; background: #2c3e50; color: white; }
-        #menu { width: 320px; padding: 25px; background: #34495e; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto; z-index: 10; }
-        #canvas-container { flex-grow: 1; position: relative; cursor: move; }
-        h2 { margin-top: 0; color: #f39c12; border-bottom: 1px solid #5d6d7e; padding-bottom: 10px; }
-        .control-group { margin-bottom: 20px; }
-        label { display: block; font-size: 14px; margin-bottom: 8px; color: #bdc3c7; }
-        input[type="range"] { width: 100%; height: 6px; background: #2c3e50; border-radius: 5px; outline: none; -webkit-appearance: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #f39c12; border-radius: 50%; cursor: pointer; }
-        .val { float: right; color: #f39c12; font-weight: bold; }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        button { flex: 1; padding: 10px; border: none; border-radius: 4px; background: #e67e22; color: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #d35400; }
-        #price-tag { margin-top: 30px; padding: 20px; background: #27ae60; border-radius: 8px; text-align: center; }
-        .hint { font-size: 11px; color: #95a5a6; margin-top: 15px; text-align: center; }
+        /* Усі стилі вже тут, файл style.css НЕ потрібен */
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; height: 100vh; background: #2c3e50; color: white; overflow: hidden; }
+        #menu { width: 320px; padding: 20px; background: #34495e; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto; z-index: 10; border-right: 2px solid #f39c12; }
+        #viewer { flex-grow: 1; background: #ecf0f1; position: relative; }
+        h2 { color: #f39c12; border-bottom: 1px dashed #5d6d7e; padding-bottom: 10px; margin-top: 0; text-transform: uppercase; font-size: 18px; }
+        .group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; margin-bottom: 8px; color: #bdc3c7; }
+        input[type="range"] { width: 100%; cursor: pointer; accent-color: #f39c12; }
+        .val { float: right; color: #f39c12; font-weight: bold; font-size: 15px; }
+        button { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #d35400; transform: translateY(-2px); }
+        #price-box { margin-top: 30px; padding: 20px; background: #27ae60; border-radius: 8px; text-align: center; border: 2px solid #2ecc71; }
+        .price-label { font-size: 14px; opacity: 0.9; }
+        #price { font-size: 26px; font-weight: bold; display: block; margin-top: 5px; }
+        .hint { font-size: 11px; color: #95a5a6; margin-top: 20px; line-height: 1.4; text-align: center; }
     </style>
 </head>
 <body>
@@ -26,141 +28,150 @@
 <div id="menu">
     <h2>Конфігуратор Шафи</h2>
     
-    <div class="control-group">
-        <label>Ширина: <span class="val" id="wV">1800</span> мм</label>
+    <div class="group">
+        <label>Ширина: <span id="wV" class="val">1800</span> мм</label>
         <input type="range" id="wI" min="1000" max="3000" value="1800">
     </div>
 
-    <div class="control-group">
-        <label>Висота: <span class="val" id="hV">2400</span> мм</label>
-        <input type="range" id="hI" min="1500" max="2700" value="2400">
+    <div class="group">
+        <label>Висота: <span id="hV" class="val">2300</span> мм</label>
+        <input type="range" id="hI" min="1500" max="2700" value="2300">
     </div>
 
-    <div class="control-group">
-        <label>Глибина: <span class="val" id="dV">600</span> мм</label>
+    <div class="group">
+        <label>Глибина: <span id="dV" class="val">600</span> мм</label>
         <input type="range" id="dI" min="400" max="900" value="600">
     </div>
 
-    <div class="control-group">
-        <label>Кількість секцій: <span class="val" id="sV">3</span></label>
+    <div class="group">
+        <label>Кількість секцій: <span id="sV" class="val">3</span></label>
         <input type="range" id="sI" min="2" max="5" value="3">
     </div>
 
-    <div class="btn-group">
-        <button onclick="toggleDoors()">Відкрити/Закрити</button>
+    <button onclick="moveDoors()">ВІДКРИТИ / ЗАКРИТИ ДВЕРІ</button>
+
+    <div id="price-box">
+        <span class="price-label">Орієнтовна вартість:</span>
+        <span id="price">0</span> грн
     </div>
 
-    <div id="price-tag">
-        Вартість проекту:<br>
-        <span style="font-size: 24px;" id="price">0</span> грн
+    <div class="hint">
+        Мишка: ЛКМ - оберт, ПКМ - зсув, Колесо - наближення.
     </div>
-
-    <div class="hint">Ліва кнопка - оберт | Права - панорама | Колесо - зум</div>
 </div>
 
-<div id="canvas-container"></div>
+<div id="viewer"></div>
 
 <script>
-    const container = document.getElementById('canvas-container');
+    // Ініціалізація сцени Three.js
+    const view = document.getElementById('viewer');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xecf0f1);
+    scene.background = new THREE.Color(0xdde4e7);
 
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / window.innerHeight, 1, 10000);
-    camera.position.set(2500, 1500, 2500);
+    const camera = new THREE.PerspectiveCamera(45, view.clientWidth / window.innerHeight, 1, 10000);
+    camera.position.set(2800, 1800, 2800);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(view.clientWidth, window.innerHeight);
+    view.appendChild(renderer.domElement);
 
     // Світло
-    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-    const light = new THREE.DirectionalLight(0xffffff, 0.5);
-    light.position.set(2000, 2000, 2000);
-    scene.add(light);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const sun = new THREE.DirectionalLight(0xffffff, 0.6);
+    sun.position.set(1500, 2500, 1500);
+    scene.add(sun);
+
+    // Сітка підлоги
+    const grid = new THREE.GridHelper(4000, 20, 0xbdc3c7, 0xdfe6e9);
+    scene.add(grid);
 
     const group = new THREE.Group();
     scene.add(group);
 
     let doorsOpen = false;
-    const T = 18; // Товщина ДСП
 
-    function createBoard(w, h, d, x, y, z, color = 0x8d6e63) {
+    // Функція створення панелей
+    function createPart(w, h, d, x, y, z, color = 0x8b4513) {
         const geo = new THREE.BoxGeometry(w, h, d);
-        const mat = new THREE.MeshStandardMaterial({ color: color });
+        const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.7 });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(x, y, z);
         
+        // Контури деталей
         const edges = new THREE.EdgesGeometry(geo);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x333333 }));
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x2c3e50 }));
         mesh.add(line);
         
+        group.add(mesh);
         return mesh;
     }
 
     function update() {
+        // Очищення сцени перед перемалюванням
         while(group.children.length > 0) group.remove(group.children[0]);
 
         const W = parseInt(document.getElementById('wI').value);
         const H = parseInt(document.getElementById('hI').value);
         const D = parseInt(document.getElementById('dI').value);
         const S = parseInt(document.getElementById('sI').value);
+        const T = 18; // Товщина ДСП
 
+        // Оновлення тексту в меню
         document.getElementById('wV').innerText = W;
         document.getElementById('hV').innerText = H;
         document.getElementById('dV').innerText = D;
         document.getElementById('sV').innerText = S;
 
-        // Корпус
-        group.add(createBoard(W, T, D, 0, T/2, 0)); // Дно
-        group.add(createBoard(W, T, D, 0, H - T/2, 0)); // Верх
-        group.add(createBoard(T, H - 2*T, D, -W/2 + T/2, H/2, 0)); // Ліва боковина
-        group.add(createBoard(T, H - 2*T, D, W/2 - T/2, H/2, 0)); // Права боковина
-        group.add(createBoard(W - 4, H - 4, 4, 0, H/2, -D/2 + 2, 0x5d4037)); // ХДФ задня стінка
+        // Побудова КОРПУСУ
+        createPart(W, T, D, 0, T/2, 0); // Дно
+        createPart(W, T, D, 0, H - T/2, 0); // Дах
+        createPart(T, H - 2*T, D, -W/2 + T/2, H/2, 0); // Ліва стійка
+        createPart(T, H - 2*T, D, W/2 - T/2, H/2, 0); // Права стійка
+        createPart(W - 4, H - 4, 4, 0, H/2, -D/2 + 2, 0x4d3227); // Задня стінка (ХДФ)
 
-        // Перегородки та секції
-        const sectionWidth = (W - T * (S + 1)) / S;
+        // Перегородки (внутрішні стійки)
+        const sw = (W - T * (S + 1)) / S;
         for (let i = 1; i < S; i++) {
-            let posX = -W/2 + (sectionWidth + T) * i + T/2;
-            group.add(createBoard(T, H - 2*T, D - 20, posX, H/2, 10));
+            let posX = -W/2 + (sw + T) * i + T/2;
+            createPart(T, H - 2*T, D - 40, posX, H/2, 20, 0x7e5a4a);
         }
 
-        // Полиці (для прикладу по 3 у кожну секцію)
-        for (let i = 0; i < S; i++) {
-            let startX = -W/2 + T + sectionWidth/2 + (sectionWidth + T) * i;
-            for (let j = 1; j <= 3; j++) {
-                group.add(createBoard(sectionWidth, T, D - 30, startX, (H/4) * j, 10, 0x795548));
-            }
-        }
+        // Двері (система купе)
+        const dw = W / 2 + 15;
+        const offset = doorsOpen ? dw - 80 : 0;
+        createPart(dw, H - 45, 20, -W/4 + offset/2, H/2, D/2 + 12, 0xd2b48c); // Двері 1
+        createPart(dw, H - 45, 20, W/4 - offset/2, H/2, D/2 + 35, 0xe3c191);  // Двері 2
 
-        // Двері (спрощена логіка розсувної системи)
-        const doorW = W / 2 + 20;
-        const offset = doorsOpen ? doorW - 50 : 0;
-        group.add(createBoard(doorW, H - 40, 20, -W/4 + offset/2, H/2, D/2 + 10, 0xd7ccc8)); // Ліва дверка
-        group.add(createBoard(doorW, H - 40, 20, W/4 - offset/2, H/2, D/2 + 30, 0xbcaaa4));  // Права дверка
+        // Розрахунок ціни
+        const price = Math.round((W * H * D) / 1000000 * 22 + (S * 1500));
+        document.getElementById('price').innerText = price.toLocaleString();
 
-        // Ціна
-        const totalArea = (W * H * 2 + W * D * 2 + H * D * 2) / 1000000;
-        document.getElementById('price').innerText = Math.round(totalArea * 950 + (S * 1200));
-        
         camera.lookAt(0, H/2, 0);
     }
 
-    function toggleDoors() {
+    // Функція анімації дверей
+    function moveDoors() {
         doorsOpen = !doorsOpen;
         update();
     }
 
-    document.querySelectorAll('input').forEach(i => i.oninput = update);
+    // Оновлення при русі повзунків
+    document.querySelectorAll('input').forEach(input => {
+        input.oninput = update;
+    });
 
+    // Рендеринг
     function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
 
+    // Корекція при зміні розміру вікна
     window.onresize = () => {
-        camera.aspect = container.clientWidth / window.innerHeight;
+        camera.aspect = view.clientWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, window.innerHeight);
+        renderer.setSize(view.clientWidth, window.innerHeight);
     };
 
     update();
